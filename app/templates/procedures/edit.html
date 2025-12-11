@@ -80,15 +80,22 @@
         <h2 class="form-section-title">CONTENU</h2>
 
         <div class="form-group">
+            <!-- Indicateur de chargement -->
+            <div id="editor-loading" style="padding: 20px; text-align: center; color: #06b6d4;">
+                🔄 Chargement de l'éditeur...
+            </div>
+
+            <!-- Éditeur Quill (caché par défaut, affiché quand prêt) -->
+            <div id="quill-editor" style="display: none;"></div>
+
+            <!-- Textarea caché pour la soumission du formulaire -->
             <textarea id="content"
                       name="content"
-                      class="form-textarea editor-content"
-                      rows="20"
-                      required
-                      placeholder="Rédigez votre procédure ici... Vous pouvez coller du texte depuis Word/PDF.">{{ procedure.content if procedure else '' }}</textarea>
+                      style="display: none;"
+                      required>{{ procedure.content if procedure else '' }}</textarea>
 
             <small class="form-help">
-                💡 Vous pouvez coller du HTML depuis Word - Il sera préservé tel quel
+                💡 Éditeur avancé : collez des images, du texte depuis Word/PDF avec mise en forme
             </small>
         </div>
     </div>
@@ -107,27 +114,116 @@
 {% endblock %}
 
 {% block extra_css %}
+<!-- Quill Editor CSS -->
+<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+
 <style>
-.tox-tinymce {
+/* Quill Editor Dark Theme Styling */
+.ql-toolbar.ql-snow {
+    background-color: var(--bg-secondary);
     border: 1px solid var(--bg-hover) !important;
-    border-radius: 4px !important;
+    border-radius: 4px 4px 0 0;
+    border-bottom: none !important;
 }
-.tox .tox-edit-area__iframe {
-    background-color: var(--bg-primary) !important;
+
+.ql-container.ql-snow {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--bg-hover) !important;
+    border-radius: 0 0 4px 4px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    min-height: 400px;
+}
+
+.ql-editor {
+    color: var(--text-primary);
+    min-height: 400px;
+}
+
+.ql-editor.ql-blank::before {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Toolbar buttons */
+.ql-toolbar.ql-snow .ql-stroke {
+    stroke: var(--text-primary) !important;
+}
+
+.ql-toolbar.ql-snow .ql-fill {
+    fill: var(--text-primary) !important;
+}
+
+.ql-toolbar.ql-snow .ql-picker-label {
+    color: var(--text-primary) !important;
+}
+
+.ql-toolbar.ql-snow button:hover,
+.ql-toolbar.ql-snow button.ql-active {
+    background-color: var(--bg-hover) !important;
+}
+
+.ql-toolbar.ql-snow .ql-picker-options {
+    background-color: var(--bg-secondary) !important;
+    border: 1px solid var(--bg-hover) !important;
+}
+
+.ql-toolbar.ql-snow .ql-picker-item:hover {
+    background-color: var(--bg-hover) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Images dans l'éditeur */
+.ql-editor img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin: 10px 0;
+}
+
+/* Code blocks */
+.ql-editor pre.ql-syntax {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--bg-hover);
+    border-radius: 4px;
+    padding: 12px;
+    overflow-x: auto;
+}
+
+/* Blockquotes */
+.ql-editor blockquote {
+    border-left: 4px solid var(--accent-primary);
+    padding-left: 16px;
+    margin-left: 0;
+    margin-right: 0;
+    color: var(--text-secondary);
 }
 </style>
 {% endblock %}
 
 {% block extra_js %}
-<!-- Éditeur simple en attendant TinyMCE -->
+<!-- Quill Editor JS -->
+<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+
+<!-- Quill Editor Initialization -->
+<script src="{{ url_for('static', filename='js/quill-editor.js') }}"></script>
+
+<!-- Génération de tags avec IA -->
 <script>
-// Générer les tags avec IA
 document.addEventListener('DOMContentLoaded', function() {
     const generateBtn = document.getElementById('generateTagsBtn');
     if (generateBtn) {
         generateBtn.addEventListener('click', function() {
             const title = document.getElementById('title').value;
-            const content = document.getElementById('content').value;
+
+            // Récupérer le contenu depuis Quill ou textarea
+            let content = '';
+            if (window.quillInstance) {
+                content = window.quillInstance.getText();
+            } else {
+                content = document.getElementById('content').value;
+            }
 
             if (!title && !content) {
                 alert('Veuillez remplir au moins le titre ou le contenu');
