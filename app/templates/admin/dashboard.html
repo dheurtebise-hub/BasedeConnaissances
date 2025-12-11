@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Administration - KB Support Basedoc{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        <span class="terminal-prompt">&gt;</span>
+        Administration
+    </h1>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-content">
+            <div class="stat-value">{{ stats.users_count }}</div>
+            <div class="stat-label">Utilisateurs</div>
+        </div>
+        <a href="{{ url_for('admin.users') }}" class="stat-link">Gérer →</a>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon">📄</div>
+        <div class="stat-content">
+            <div class="stat-value">{{ stats.procedures_count }}</div>
+            <div class="stat-label">Procédures</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon">📁</div>
+        <div class="stat-content">
+            <div class="stat-value">{{ stats.categories_count }}</div>
+            <div class="stat-label">Catégories</div>
+        </div>
+        <a href="{{ url_for('admin.categories') }}" class="stat-link">Gérer →</a>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon">🏷️</div>
+        <div class="stat-content">
+            <div class="stat-value">{{ stats.tags_count }}</div>
+            <div class="stat-label">Tags</div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<section class="content-section">
+    <div class="section-header">
+        <h2 class="section-title">Actions rapides</h2>
+    </div>
+
+    <div class="actions-grid">
+        <a href="{{ url_for('admin.user_new') }}" class="action-card">
+            <div class="action-icon">👤</div>
+            <div class="action-title">Nouvel utilisateur</div>
+            <div class="action-description">Créer un nouveau compte utilisateur</div>
+        </a>
+
+        <a href="{{ url_for('procedures.new') }}" class="action-card">
+            <div class="action-icon">📝</div>
+            <div class="action-title">Nouvelle procédure</div>
+            <div class="action-description">Créer une nouvelle procédure</div>
+        </a>
+    </div>
+</section>
+{% endblock %}

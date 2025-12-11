@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des utilisateurs - KB Support Basedoc{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        <span class="terminal-prompt">&gt;</span>
+        Gestion des utilisateurs
+    </h1>
+    <a href="{{ url_for('admin.user_new') }}" class="btn btn-primary">+ Nouvel utilisateur</a>
+</div>
+
+<div class="users-table">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Email</th>
+                <th>Rôle</th>
+                <th>Statut</th>
+                <th>Dernière connexion</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.full_name }}</td>
+                <td>{{ user.email }}</td>
+                <td>
+                    {% if user.is_admin %}
+                    <span class="badge badge-admin">Admin</span>
+                    {% else %}
+                    <span class="badge badge-user">Utilisateur</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if user.is_active %}
+                    <span class="badge badge-success">Actif</span>
+                    {% else %}
+                    <span class="badge badge-danger">Inactif</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if user.last_login %}
+                    {{ user.last_login.strftime('%d/%m/%Y %H:%M') }}
+                    {% else %}
+                    Jamais connecté
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{{ url_for('admin.user_edit', id=user.id) }}" class="btn-icon">✏️</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

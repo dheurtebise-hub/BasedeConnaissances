@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Procédures - KB Support Basedoc{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        <span class="terminal-prompt">&gt;</span>
+        Toutes les procédures
+    </h1>
+    <a href="{{ url_for('procedures.new') }}" class="btn btn-primary">+ Nouvelle procédure</a>
+</div>
+
+{% if procedures.items %}
+<div class="procedures-list">
+    {% for procedure in procedures.items %}
+    <div class="procedure-row">
+        <a href="{{ url_for('procedures.detail', id=procedure.id) }}" class="procedure-row-content">
+            <div class="procedure-row-header">
+                <span class="procedure-category" style="color: {{ procedure.category.color_code if procedure.category else '#06b6d4' }}">
+                    {{ procedure.category.short_name.upper() if procedure.category else 'GEN' }}
+                </span>
+                <h3 class="procedure-row-title">{{ procedure.title }}</h3>
+            </div>
+
+            {% if procedure.description %}
+            <p class="procedure-row-description">{{ procedure.description }}</p>
+            {% endif %}
+
+            <div class="procedure-row-footer">
+                <div class="procedure-tags">
+                    {% for tag in procedure.tags[:5] %}
+                    <span class="tag tag-sm">{{ tag.name }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="procedure-row-meta">
+                    {% if procedure.estimated_time %}
+                    <span class="meta-item">⏱ {{ procedure.estimated_time }} min</span>
+                    {% endif %}
+                    <span class="meta-item">{{ procedure.updated_at.strftime('%d/%m/%Y') }}</span>
+                </div>
+            </div>
+        </a>
+
+        <div class="procedure-row-actions">
+            <a href="{{ url_for('procedures.edit', id=procedure.id) }}" class="btn-icon" title="Éditer">✏️</a>
+            {% if current_user.is_admin %}
+            <form method="POST" action="{{ url_for('procedures.archive', id=procedure.id) }}" style="display: inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn-icon" title="Archiver" onclick="return confirm('Archiver cette procédure ?')">🗃️</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if procedures.pages > 1 %}
+<div class="pagination">
+    {% if procedures.has_prev %}
+    <a href="{{ url_for('procedures.list', page=procedures.prev_num, category=selected_category) }}" class="pagination-btn">← Précédent</a>
+    {% endif %}
+
+    <span class="pagination-info">Page {{ procedures.page }} / {{ procedures.pages }}</span>
+
+    {% if procedures.has_next %}
+    <a href="{{ url_for('procedures.list', page=procedures.next_num, category=selected_category) }}" class="pagination-btn">Suivant →</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="empty-state">
+    <div class="empty-icon">📝</div>
+    <div class="empty-title">Aucune procédure trouvée</div>
+    <div class="empty-text">Commencez par créer votre première procédure</div>
+    <a href="{{ url_for('procedures.new') }}" class="btn btn-primary">Créer une procédure</a>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}{{ procedure.title }} - KB Support Basedoc{% endblock %}
+
+{% block content %}
+<div class="procedure-detail">
+    <!-- Header -->
+    <div class="procedure-detail-header">
+        <div class="procedure-breadcrumb">
+            <a href="{{ url_for('procedures.home') }}">Accueil</a>
+            <span class="breadcrumb-separator">/</span>
+            {% if procedure.category %}
+            <span class="breadcrumb-category" style="color: {{ procedure.category.color_code }}">
+                {{ procedure.category.name }}
+            </span>
+            <span class="breadcrumb-separator">/</span>
+            {% endif %}
+            <span class="breadcrumb-current">{{ procedure.title }}</span>
+        </div>
+
+        <div class="procedure-actions">
+            <a href="{{ url_for('procedures.edit', id=procedure.id) }}" class="btn btn-secondary">✏️ Éditer</a>
+            {% if current_user.is_admin %}
+            <form method="POST" action="{{ url_for('procedures.archive', id=procedure.id) }}" style="display: inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-danger" onclick="return confirm('Archiver cette procédure ?')">🗃️ Archiver</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Title and Meta -->
+    <div class="procedure-detail-title-section">
+        <h1 class="procedure-detail-title">{{ procedure.title }}</h1>
+
+        {% if procedure.description %}
+        <p class="procedure-detail-description">{{ procedure.description }}</p>
+        {% endif %}
+
+        <div class="procedure-detail-meta">
+            <span class="meta-item">
+                <span class="meta-label">Catégorie:</span>
+                <span class="meta-value" style="color: {{ procedure.category.color_code if procedure.category else '#06b6d4' }}">
+                    {{ procedure.category.name if procedure.category else 'Non catégorisé' }}
+                </span>
+            </span>
+
+            {% if procedure.estimated_time %}
+            <span class="meta-item">
+                <span class="meta-label">Durée estimée:</span>
+                <span class="meta-value">{{ procedure.estimated_time }} min</span>
+            </span>
+            {% endif %}
+
+            <span class="meta-item">
+                <span class="meta-label">Créé par:</span>
+                <span class="meta-value">{{ procedure.author.full_name if procedure.author else 'Inconnu' }}</span>
+            </span>
+
+            <span class="meta-item">
+                <span class="meta-label">Dernière mise à jour:</span>
+                <span class="meta-value">{{ procedure.updated_at.strftime('%d/%m/%Y à %H:%M') }}</span>
+            </span>
+        </div>
+
+        <!-- Tags -->
+        {% if procedure.tags %}
+        <div class="procedure-detail-tags">
+            {% for tag in procedure.tags %}
+            <a href="{{ url_for('search.search_tags', tag=tag.name) }}" class="tag">{{ tag.name }}</a>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Content -->
+    <div class="procedure-detail-content">
+        <div class="markdown-content">
+            {{ procedure.content|safe }}
+        </div>
+    </div>
+
+    <!-- Attachments -->
+    {% if procedure.attachments.count() > 0 %}
+    <div class="procedure-detail-attachments">
+        <h3 class="attachments-title">📎 Fichiers joints</h3>
+        <div class="attachments-list">
+            {% for attachment in procedure.attachments %}
+            <a href="{{ url_for('static', filename='../storage/procedures/' + procedure.id|string + '/' + attachment.filename) }}"
+               class="attachment-item"
+               download="{{ attachment.original_filename }}">
+                <span class="attachment-icon">{{ attachment.file_type|file_icon }}</span>
+                <span class="attachment-name">{{ attachment.original_filename }}</span>
+                <span class="attachment-size">{{ (attachment.file_size / 1024)|round(1) }} KB</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Ajouter le filtre file_icon si besoin
+</script>
+{% endblock %}

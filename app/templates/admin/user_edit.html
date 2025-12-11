@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}{% if user %}Éditer{% else %}Nouvel{% endif %} Utilisateur - KB Support Basedoc{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        <span class="terminal-prompt">&gt;</span>
+        {% if user %}Éditer l'utilisateur{% else %}Nouvel utilisateur{% endif %}
+    </h1>
+</div>
+
+<form method="POST" class="user-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="form-section">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="full_name" class="form-label">Nom complet *</label>
+                <input type="text"
+                       id="full_name"
+                       name="full_name"
+                       class="form-input"
+                       required
+                       value="{{ user.full_name if user else '' }}">
+            </div>
+
+            <div class="form-group">
+                <label for="email" class="form-label">Email *</label>
+                <input type="email"
+                       id="email"
+                       name="email"
+                       class="form-input"
+                       required
+                       value="{{ user.email if user else '' }}">
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">
+                    Mot de passe {% if not user %}*{% else %}(laisser vide pour ne pas changer){% endif %}
+                </label>
+                <input type="password"
+                       id="password"
+                       name="password"
+                       class="form-input"
+                       {% if not user %}required{% endif %}>
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="is_admin" class="checkbox" {% if user and user.is_admin %}checked{% endif %}>
+                    <span>Administrateur</span>
+                </label>
+            </div>
+
+            {% if user %}
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="is_active" class="checkbox" {% if user.is_active %}checked{% endif %}>
+                    <span>Compte actif</span>
+                </label>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+        <a href="{{ url_for('admin.users') }}" class="btn btn-secondary">Annuler</a>
+    </div>
+</form>
+{% endblock %}

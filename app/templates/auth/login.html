@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - KB Support Basedoc</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dark_theme.css') }}">
+</head>
+<body class="login-page">
+    <div class="login-container">
+        <div class="login-box">
+            <!-- Logo -->
+            <div class="login-header">
+                <div class="login-logo">
+                    <span class="terminal-prompt">&gt;</span>
+                    <span class="app-title">KB_SUPPORT_BASEDOC</span>
+                </div>
+                <div class="login-subtitle">
+                    Base de Connaissances IT<br>
+                    Support Gagneraud
+                </div>
+            </div>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category }}">
+                        <span class="flash-icon">
+                            {% if category == 'success' %}✓{% elif category == 'error' %}✗{% else %}ℹ{% endif %}
+                        </span>
+                        <span class="flash-text">{{ message }}</span>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Login Form -->
+            <form method="POST" action="{{ url_for('auth.login') }}" class="login-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="form-group">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email"
+                           id="email"
+                           name="email"
+                           class="form-input"
+                           required
+                           autofocus
+                           placeholder="votre.email@gagneraud.fr">
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password"
+                           id="password"
+                           name="password"
+                           class="form-input"
+                           required
+                           placeholder="••••••••">
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="remember" class="checkbox">
+                        <span>Se souvenir de moi</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">SE CONNECTER</button>
+            </form>
+
+            <!-- Footer -->
+            <div class="login-footer">
+                Support IT - Gagneraud
+            </div>
+        </div>
+    </div>
+</body>
+</html>

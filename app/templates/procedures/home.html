@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Accueil - KB Support Basedoc{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        <span class="terminal-prompt">&gt;</span>
+        Bienvenue, {{ current_user.full_name.split()[0] }}
+    </h1>
+    <p class="page-subtitle">Base de connaissances IT - Support Gagneraud</p>
+</div>
+
+<!-- Stats Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">📄</div>
+        <div class="stat-content">
+            <div class="stat-value">{{ recent_procedures|length }}</div>
+            <div class="stat-label">Procédures récentes</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon">📁</div>
+        <div class="stat-content">
+            <div class="stat-value">{{ categories|length }}</div>
+            <div class="stat-label">Catégories</div>
+        </div>
+    </div>
+
+    <div class="stat-card stat-card-accent">
+        <div class="stat-icon">➕</div>
+        <div class="stat-content">
+            <div class="stat-label">Nouvelle procédure</div>
+            <a href="{{ url_for('procedures.new') }}" class="stat-link">Créer →</a>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Procedures -->
+<section class="content-section">
+    <div class="section-header">
+        <h2 class="section-title">Procédures récentes</h2>
+        <a href="{{ url_for('procedures.list') }}" class="section-link">Voir tout →</a>
+    </div>
+
+    {% if recent_procedures %}
+    <div class="procedures-grid">
+        {% for procedure in recent_procedures %}
+        <a href="{{ url_for('procedures.detail', id=procedure.id) }}" class="procedure-card">
+            <div class="procedure-card-header">
+                <span class="procedure-category" style="color: {{ procedure.category.color_code if procedure.category else '#06b6d4' }}">
+                    {{ procedure.category.short_name.upper() if procedure.category else 'GEN' }}
+                </span>
+                {% if procedure.estimated_time %}
+                <span class="procedure-time">⏱ {{ procedure.estimated_time }} min</span>
+                {% endif %}
+            </div>
+
+            <h3 class="procedure-title">{{ procedure.title }}</h3>
+
+            {% if procedure.description %}
+            <p class="procedure-description">{{ procedure.description[:120] }}{% if procedure.description|length > 120 %}...{% endif %}</p>
+            {% endif %}
+
+            <div class="procedure-card-footer">
+                <div class="procedure-tags">
+                    {% for tag in procedure.tags[:3] %}
+                    <span class="tag">{{ tag.name }}</span>
+                    {% endfor %}
+                    {% if procedure.tags|length > 3 %}
+                    <span class="tag-more">+{{ procedure.tags|length - 3 }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="procedure-meta">
+                    <span class="procedure-date">{{ procedure.updated_at.strftime('%d/%m/%Y') }}</span>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">📝</div>
+        <div class="empty-title">Aucune procédure</div>
+        <div class="empty-text">Commencez par créer votre première procédure</div>
+        <a href="{{ url_for('procedures.new') }}" class="btn btn-primary">Créer une procédure</a>
+    </div>
+    {% endif %}
+</section>
+
+<!-- Quick Links -->
+<section class="content-section">
+    <div class="section-header">
+        <h2 class="section-title">Catégories principales</h2>
+    </div>
+
+    <div class="categories-grid">
+        {% for category in categories %}
+        <a href="{{ url_for('procedures.list', category=category.id) }}" class="category-card">
+            <div class="category-icon" style="color: {{ category.color_code }}">■</div>
+            <div class="category-content">
+                <div class="category-name">{{ category.name }}</div>
+                <div class="category-count">{{ category.procedures.count() }} procédures</div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des catégories - KB Support Basedoc{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        <span class="terminal-prompt">&gt;</span>
+        Gestion des catégories
+    </h1>
+</div>
+
+<div class="categories-management">
+    {% for category in categories %}
+    <div class="category-section">
+        <div class="category-header" style="border-left: 4px solid {{ category.color_code }}">
+            <h3 class="category-name">{{ category.name }}</h3>
+            <span class="category-short">{{ category.short_name }}</span>
+        </div>
+
+        {% if category.children %}
+        <div class="subcategories-list">
+            {% for child in category.children %}
+            <div class="subcategory-item">
+                <span class="subcategory-name">{{ child.name }}</span>
+                <span class="subcategory-short">{{ child.short_name }}</span>
+                <span class="subcategory-count">{{ child.procedures.count() }} procédures</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
