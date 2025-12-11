@@ -2,6 +2,11 @@
 """Point d'entrée de l'application KB Basedoc"""
 
 import os
+from dotenv import load_dotenv
+
+# Charger les variables d'environnement
+load_dotenv()
+
 from app import create_app, db
 from app.models import User, Procedure, Category, Tag
 

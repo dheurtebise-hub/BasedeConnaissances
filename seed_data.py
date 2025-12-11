@@ -2,6 +2,11 @@
 """Script pour initialiser les données de base (catégories et admin)"""
 
 import os
+from dotenv import load_dotenv
+
+# Charger les variables d'environnement
+load_dotenv()
+
 from app import create_app, db
 from app.models import User, Category
 
