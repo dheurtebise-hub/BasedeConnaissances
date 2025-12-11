@@ -29,7 +29,7 @@
                        placeholder="Ex: Créer une boîte mail partagée dans Outlook">
             </div>
 
-            <div class="form-group">
+            <div class="form-group form-group-full">
                 <label for="category_id" class="form-label">Catégorie *</label>
                 <select id="category_id" name="category_id" class="form-select" required>
                     <option value="">Sélectionner une catégorie</option>
@@ -46,17 +46,6 @@
                         {% endif %}
                     {% endfor %}
                 </select>
-            </div>
-
-            <div class="form-group">
-                <label for="estimated_time" class="form-label">Durée estimée (minutes)</label>
-                <input type="number"
-                       id="estimated_time"
-                       name="estimated_time"
-                       class="form-input"
-                       min="1"
-                       value="{{ procedure.estimated_time if procedure else '' }}"
-                       placeholder="Ex: 15">
             </div>
 
             <div class="form-group form-group-full">
@@ -91,24 +80,13 @@
         <h2 class="form-section-title">CONTENU</h2>
 
         <div class="form-group">
-            <div class="editor-toolbar">
-                <button type="button" class="toolbar-btn" data-action="bold" title="Gras">B</button>
-                <button type="button" class="toolbar-btn" data-action="italic" title="Italique">I</button>
-                <button type="button" class="toolbar-btn" data-action="heading" title="Titre">H1</button>
-                <button type="button" class="toolbar-btn" data-action="code" title="Code">Code</button>
-                <button type="button" class="toolbar-btn" data-action="list" title="Liste">• Liste</button>
-                <button type="button" class="toolbar-btn" data-action="link" title="Lien">🔗</button>
-            </div>
-
             <textarea id="content"
                       name="content"
                       class="form-textarea editor-content"
-                      rows="20"
-                      required
-                      placeholder="Rédigez votre procédure en markdown...">{{ procedure.content if procedure else '' }}</textarea>
+                      required>{{ procedure.content if procedure else '' }}</textarea>
 
             <small class="form-help">
-                Utilisez Markdown pour la mise en forme. <a href="#" class="help-link">Guide Markdown</a>
+                💡 <strong>Copier-coller</strong> : Images et texte depuis Word/PDF supportés • <strong>Drag & Drop</strong> : Glissez vos images directement
             </small>
         </div>
     </div>
@@ -126,46 +104,165 @@
 </form>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+.tox-tinymce {
+    border: 1px solid var(--bg-hover) !important;
+    border-radius: 4px !important;
+}
+.tox .tox-edit-area__iframe {
+    background-color: var(--bg-primary) !important;
+}
+</style>
+{% endblock %}
+
 {% block extra_js %}
+<!-- TinyMCE CDN -->
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+
 <script>
-// Auto-save functionality
-let autosaveTimeout;
-const contentTextarea = document.getElementById('content');
-const autosaveStatus = document.getElementById('autosaveStatus');
+// Initialiser TinyMCE avec configuration complète
+let editorInstance;
 
-{% if procedure %}
-contentTextarea.addEventListener('input', function() {
-    clearTimeout(autosaveTimeout);
+tinymce.init({
+    selector: '#content',
+    height: 600,
 
-    autosaveTimeout = setTimeout(function() {
-        const content = contentTextarea.value;
+    // Plugins pour fonctionnalités riches
+    plugins: [
+        'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+        'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+        'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount',
+        'paste', 'codesample'
+    ],
 
-        fetch('/api/procedures/{{ procedure.id }}/autosave', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrf_token]').value
-            },
-            body: JSON.stringify({ content: content })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                autosaveStatus.textContent = 'Auto-saved: à l\'instant';
-                setTimeout(() => {
-                    autosaveStatus.textContent = '';
-                }, 3000);
-            }
-        })
-        .catch(error => console.error('Autosave error:', error));
-    }, 2000); // 2 secondes
+    // Toolbar avec tous les outils
+    toolbar: 'undo redo | blocks | bold italic underline strikethrough | ' +
+             'alignleft aligncenter alignright alignjustify | ' +
+             'bullist numlist outdent indent | ' +
+             'forecolor backcolor | ' +
+             'table link image media codesample | ' +
+             'removeformat code fullscreen preview',
+
+    // Menu contextuel
+    menubar: 'file edit view insert format tools table help',
+
+    // Support des images
+    images_upload_handler: function (blobInfo, success, failure) {
+        // Convertir l'image en base64 (pour simplicité)
+        const reader = new FileReader();
+        reader.onloadend = function() {
+            success(reader.result);
+        };
+        reader.onerror = failure;
+        reader.readAsDataURL(blobInfo.blob());
+    },
+
+    // Permettre le drag & drop d'images
+    paste_data_images: true,
+    automatic_uploads: true,
+
+    // Améliorer le copier-coller depuis Word
+    paste_word_valid_elements: 'b,strong,i,em,h1,h2,h3,h4,h5,h6,p,br,ul,ol,li,table,thead,tbody,tr,th,td,img,span,div',
+    paste_enable_default_filters: true,
+    paste_filter_drop: false,
+    paste_preprocess: function(plugin, args) {
+        // Nettoyer le HTML de Word mais garder les images
+        console.log('Pasting content from Word/external source');
+    },
+
+    // Theme et skin
+    skin: 'oxide-dark',
+    content_css: 'dark',
+
+    // Styles de contenu
+    content_style: `
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #f9fafb;
+            background-color: #1f2937;
+            padding: 20px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 10px 0;
+        }
+        table td, table th {
+            border: 1px solid #4b5563;
+            padding: 8px;
+        }
+        pre {
+            background-color: #111827;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #374151;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    `,
+
+    // Configuration
+    relative_urls: false,
+    remove_script_host: false,
+    document_base_url: window.location.origin,
+
+    // Langue française
+    language: 'fr_FR',
+    language_url: 'https://cdn.tiny.cloud/1/no-api-key/tinymce/6/langs/fr_FR.js',
+
+    // Callback après initialisation
+    setup: function (editor) {
+        editorInstance = editor;
+
+        {% if procedure %}
+        // Auto-save
+        editor.on('change keyup', function () {
+            clearTimeout(autosaveTimeout);
+
+            autosaveTimeout = setTimeout(function() {
+                const content = editor.getContent();
+
+                fetch('/api/procedures/{{ procedure.id }}/autosave', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrf_token]').value
+                    },
+                    body: JSON.stringify({ content: content })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        document.getElementById('autosaveStatus').textContent = 'Auto-saved: à l\'instant';
+                        setTimeout(() => {
+                            document.getElementById('autosaveStatus').textContent = '';
+                        }, 3000);
+                    }
+                })
+                .catch(error => console.error('Autosave error:', error));
+            }, 3000);
+        });
+        {% endif %}
+    }
 });
-{% endif %}
+
+let autosaveTimeout;
 
 // Generate tags with AI
 document.getElementById('generateTagsBtn').addEventListener('click', function() {
     const title = document.getElementById('title').value;
-    const content = document.getElementById('content').value;
+    const content = editorInstance ? editorInstance.getContent({format: 'text'}) : '';
 
     if (!title && !content) {
         alert('Veuillez remplir au moins le titre ou le contenu');
@@ -196,43 +293,6 @@ document.getElementById('generateTagsBtn').addEventListener('click', function() 
         alert('Erreur lors de la génération des tags');
         this.disabled = false;
         this.textContent = '🤖 Générer avec IA';
-    });
-});
-
-// Toolbar actions
-document.querySelectorAll('.toolbar-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const action = this.dataset.action;
-        const textarea = document.getElementById('content');
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
-        const selectedText = textarea.value.substring(start, end);
-
-        let replacement = '';
-
-        switch(action) {
-            case 'bold':
-                replacement = `**${selectedText || 'texte en gras'}**`;
-                break;
-            case 'italic':
-                replacement = `*${selectedText || 'texte en italique'}*`;
-                break;
-            case 'heading':
-                replacement = `\n## ${selectedText || 'Titre'}\n`;
-                break;
-            case 'code':
-                replacement = `\`\`\`\n${selectedText || 'code'}\n\`\`\``;
-                break;
-            case 'list':
-                replacement = `\n- ${selectedText || 'élément 1'}\n- élément 2\n`;
-                break;
-            case 'link':
-                replacement = `[${selectedText || 'texte du lien'}](url)`;
-                break;
-        }
-
-        textarea.value = textarea.value.substring(0, start) + replacement + textarea.value.substring(end);
-        textarea.focus();
     });
 });
 </script>
